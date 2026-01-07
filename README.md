@@ -1,4 +1,4 @@
-# Agamotto Gesture Control System
+  # Agamotto Gesture Control System
 
 Agamotto Gesture Control System 是一个基于摄像头与手势识别的鼠标控制系统：使用 MediaPipe Hands 追踪手部关键点，将手部位置映射为屏幕光标移动，并用“捏合”等手势触发左键点击/拖拽与右键点击。项目内置一个带交互引导的解锁动画，支持启动时选择摄像头，并提供简单的标定流程以适配不同的摄像头摆放位置与使用姿势。
 
@@ -23,17 +23,12 @@ Agamotto Gesture Control System 是一个基于摄像头与手势识别的鼠标
 
 - 操作系统：Windows（使用了 `winsound`；`pyautogui` 也更常用于桌面环境）
 - Python：建议 3.8–3.10（仓库脚本 `start.bat` 会在 3.7–3.10 中择优运行）
+- 如没有python可(优先)使用release中的exe版本
 - 摄像头：任意 UVC 摄像头（内置会扫描 0–3 号摄像头）
 
 ## 依赖安装
 
 依赖定义在 [hand_control/requirements.txt](hand_control/requirements.txt)：
-
-```bash
-py -3.10 -m pip install -r requirements.txt
-```
-
-如果你不使用 `py` 启动器，也可以：
 
 ```bash
 python -m pip install -r requirements.txt
@@ -43,12 +38,17 @@ python -m pip install -r requirements.txt
 
 ### 方式一：直接运行
 
+适用于python3.7-3.10，如非此版本区间建议使用exe版本
+
 ```bash
 cd "Agamotto Gesture Control System\hand_control"
-python main.py
+python main.py #默认python版本于适用区间内
+py -3.10 main.py #如存在多个版本则指定运行
 ```
 
 ### 方式二：使用启动脚本（Windows）
+
+此方式与方法一本质上没有区别
 
 ```bash
 cd "Agamotto Gesture Control System\hand_control"
@@ -65,6 +65,10 @@ start.bat
 
 - `ESC`：退出程序
 
+### 方式三：使用exe程序（Windows）
+
+直接启动release中的AGCS.exe即可，其余操作同上
+
 ## 手势与交互说明
 
 - 项目整体的状态机在 [hand_control/src/controller.py](hand_control/src/controller.py) 的 `MouseController.update_system_state()` 与 `MouseController.process()` 中实现，分为“未激活（Standby）→ 标定（Calibration）→ 运行（Running）”。
@@ -74,7 +78,13 @@ start.bat
 在未激活状态下，系统要求同时检测到两只手，且按以下顺序完成解锁：
 
 1. 阶段 1：任意一只手执行“无名指与拇指捏合”（Ring Pinch）
+
+![](https://github.com/zzZZSTstt/Agamotto-Gesture-Control-System/blob/main/guesture_pics/s1p1.png)
+
 2. 阶段 2：在阶段 1 有效时间内（约 3 秒），将双手做“交叉”姿态并持续保持
+
+![](https://github.com/zzZZSTstt/Agamotto-Gesture-Control-System/blob/main/guesture_pics/s1p2.png)
+
 3. 持续保持约 1.5 秒后，系统进入激活状态（HUD 会显示 OPENING 进度，最终显示 EYE OPENED）
 
 实现细节参考：
@@ -86,12 +96,16 @@ start.bat
 
 在激活状态下，同时张开双手（Open Palm），持续保持约 1.5 秒会停用系统：
 
+![](https://github.com/zzZZSTstt/Agamotto-Gesture-Control-System/blob/main/guesture_pics/s2.png)
+
 - Open Palm 判断：`MouseController.is_palm_open()`（见 [controller.py](hand_control/src/controller.py)）
 - 停用逻辑：`update_system_state()`（见 [controller.py](hand_control/src/controller.py)）
 
 ### 3) 标定流程（首次激活后）
 
 首次激活后默认未标定，会进入“自定义位置四点标定”，用于确定你在画面中“有效操作区域 ROI”：
+
+![](https://github.com/zzZZSTstt/Agamotto-Gesture-Control-System/blob/main/guesture_pics/s3.png)
 
 1. 用户用手在画面中移动到你希望的边界位置
 2. 用“小拇指 + 拇指捏合”并保持一小段时间，确认当前点（共 4 个点）
@@ -124,6 +138,8 @@ start.bat
 
 手势：拇指-食指捏合（`left_pinch`）
 
+![](https://github.com/zzZZSTstt/Agamotto-Gesture-Control-System/blob/main/guesture_pics/s4p2.png)
+
 - 当开始捏合时锁定一个“起点位置”（用于区分点按与拖拽）
 - 若捏合后移动距离超过死区半径，则触发 `mouseDown` 并进入拖拽
 - 若捏合持续时间较短（默认 ≤ 0.6s）并释放，则在锁定点触发一次左键点击
@@ -140,10 +156,14 @@ start.bat
 
 手势：拇指-中指捏合（`right_pinch`）
 
+![](https://github.com/zzZZSTstt/Agamotto-Gesture-Control-System/blob/main/guesture_pics/s4p3.png)
+
 - 进入 `right_pinch` 状态的瞬间触发一次右键点击
 - 内置最小触发间隔，避免连点（`right_click_min_interval`）
 
 #### 中键点击
+
+![](https://github.com/zzZZSTstt/Agamotto-Gesture-Control-System/blob/main/guesture_pics/s4p4.png)
 
 手势：剪刀手 + 拇指握拳（`middle_click`）
 
@@ -156,6 +176,8 @@ start.bat
 
 手势：四指并拢伸直（食指/中指/无名指/小指，`scroll`；大拇指不作硬性要求）
 
+![](https://github.com/zzZZSTstt/Agamotto-Gesture-Control-System/blob/main/guesture_pics/s4p5.png)
+
 - 保持四指伸直且紧密并拢（大拇指不作硬性要求）
 - 手势保持期间光标位置锁定（不移动）
 - **向上挥动**手掌 -> 向下滚动
@@ -164,6 +186,8 @@ start.bat
 #### 双击（左键）
 
 手势：除大拇指外的四指弯曲（`fist`）
+
+![](https://github.com/zzZZSTstt/Agamotto-Gesture-Control-System/blob/main/guesture_pics/s4p6.png)
 
 - 无论大拇指是否伸直，只要食指、中指、无名指、小指同时弯曲即可触发
 - 仅在运行模式下生效（标定模式下为“删除点”）
@@ -209,6 +233,7 @@ Agamotto Gesture Control System/
       controller.py     # 手势→鼠标控制：状态机、标定、映射与点击拖拽
       filter.py         # One Euro Filter 实现：平滑
       sound.py          # 声音提示：激活/停用/标定
+  guesture_pics/        # 手势图片
 ```
 
 ## 打包为可执行文件（PyInstaller）
@@ -260,7 +285,7 @@ pyinstaller -F -w -i icon.png --collect-all mediapipe --collect-all cv2 --hidden
 
 ## 致谢
 
-- Hyan
+- Hyan(韩言悦欣)
 - MediaPipe Hands
 - OpenCV
 - PyAutoGUI
