@@ -1,0 +1,1 @@
+py -3.10 --version >nul 2>&1 && py -3.10 main.py || py -3.9 --version >nul 2>&1 && py -3.9 main.py || py -3.8 --version >nul 2>&1 && py -3.8 main.py || py -3.7 --version >nul 2>&1 && py -3.7 main.py || echo No suitable Python version (3.7-3.10) found.
